@@ -19,6 +19,7 @@ fn injects_into_chapters() {
         )
         .check_file_contains("book/sub/nested.html", r#"<script src="../highlights-"#)
         .check_file_contains("book/chapter_1.html", r#"data-page="chapter_1.html""#)
+        .check_file_contains("book/chapter_1.html", r#"data-book="Inject &amp; Test""#)
         .check_file_contains("book/index.html", r#"data-page="chapter_1.html""#)
         .check_file_contains("book/sub/nested.html", r#"data-page="sub/nested.html""#)
         .check_file_doesnt_contain("book/print.html", "highlights-")

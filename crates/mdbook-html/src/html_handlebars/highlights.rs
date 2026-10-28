@@ -26,7 +26,7 @@ pub(super) fn register_templates(hb: &mut Handlebars<'_>) -> Result<()> {
     )?;
     hb.register_template_string(
         BODY_TEMPLATE,
-        r#"<script src="{{ resource "highlights.js" }}" data-page="{{ highlights_page }}"></script>"#,
+        r#"<script src="{{ resource "highlights.js" }}" data-page="{{ highlights_page }}" data-book="{{ book_title }}"></script>"#,
     )?;
     Ok(())
 }
@@ -35,6 +35,8 @@ pub(super) fn register_templates(hb: &mut Handlebars<'_>) -> Result<()> {
 ///
 /// `data` must contain `highlights_page`, the `.html` path of the chapter the
 /// page shows. `index.html` is a copy of the first chapter, so both share it.
+/// The book title separates the lists of books served at the same address,
+/// like every book under `mdbook serve`.
 pub(super) fn inject(
     hb: &Handlebars<'_>,
     data: &Map<String, Value>,

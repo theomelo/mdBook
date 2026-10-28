@@ -39,6 +39,12 @@ const mdbookHighlights = (function helpers() {
         }
     }
 
+    // Each book has its own list. Books served at the same address (every
+    // book under `mdbook serve`) are told apart by their title.
+    function storageKey(root, book) {
+        return STORAGE_PREFIX + root + (book ? '#' + book : '');
+    }
+
     function emptyData() {
         return { version: 1, entries: [] };
     }
@@ -276,6 +282,7 @@ const mdbookHighlights = (function helpers() {
         CONTEXT_CHARS,
         bookRoot,
         pagePath,
+        storageKey,
         loadData,
         saveData,
         newId,
@@ -296,7 +303,9 @@ if (typeof module === 'object' && module.exports) {
 // Everything below runs in the page.
 function mdbookHighlightsInPage(h) {
     // The chapter this page shows, set by mdBook on the script tag.
-    const scriptPage = document.currentScript ? document.currentScript.dataset.page : null;
+    const script = document.currentScript;
+    const scriptPage = script ? script.dataset.page : null;
+    const scriptBook = script ? script.dataset.book : '';
 
     // Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com
     // License - https://fontawesome.com/license/free (Icons: CC BY 4.0)
@@ -1379,7 +1388,7 @@ function mdbookHighlightsInPage(h) {
         const pathToRoot = typeof path_to_root !== 'undefined' ? path_to_root : null;
         app.root = h.bookRoot(pathToRoot, location.href);
         app.path = scriptPage || h.pagePath(app.root, location.pathname);
-        app.key = h.STORAGE_PREFIX + app.root;
+        app.key = h.storageKey(app.root, scriptBook);
         app.data = h.loadData(storage(), app.key);
         app.wrapAll();
         listen();

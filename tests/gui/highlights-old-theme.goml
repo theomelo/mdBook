@@ -5,7 +5,7 @@
 fail-on-js-error: true
 set-window-size: (1400, 800)
 go-to: |DOC_PATH| + "highlights-old-theme/chapter_1.html"
-store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights-old-theme/")
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights-old-theme/#Old theme")
 set-local-storage: {
     |hl_key|: null,
     "mdbook-sidebar-tab": null,

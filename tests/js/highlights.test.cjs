@@ -31,6 +31,12 @@ test('pagePath is relative to the root, with an index alias', () => {
     assert.strictEqual(h.pagePath('/book/', '/book/sub/n%20x.html'), 'sub/n x.html');
 });
 
+test('storageKey separates books served at the same address', () => {
+    assert.strictEqual(h.storageKey('/', 'Book A'), 'mdbook-highlights:/#Book A');
+    assert.notStrictEqual(h.storageKey('/', 'Book A'), h.storageKey('/', 'Book B'));
+    assert.strictEqual(h.storageKey('/b/', ''), 'mdbook-highlights:/b/');
+});
+
 test('loadData returns empty data for bad storage contents', () => {
     const empty = { version: 1, entries: [] };
     assert.deepStrictEqual(h.loadData(fakeStorage(null), 'k'), empty);
