@@ -1,0 +1,37 @@
+// Export and Import buttons in the Highlights panel.
+//
+// browser-ui-test cannot inspect downloads or drive the file picker, so this
+// only checks the controls; reading and merging files is covered by the
+// `validateImport` and `mergeEntries` unit tests. Export is not clicked: a
+// download left in progress stops the test browser from quitting.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": "highlights",
+    "mdbook-sidebar": "visible",
+}
+reload:
+
+// Available while the list is empty, so a backup can be restored.
+wait-for-css-false: (".mdbook-highlights-empty", {"display": "none"})
+assert-text: (".mdbook-highlights-toolbar [data-action='export']", "Export")
+assert-text: (".mdbook-highlights-toolbar [data-action='import']", "Import")
+assert-css-false: (".mdbook-highlights-toolbar [data-action='import']", {"display": "none"})
+assert-attribute: (".mdbook-highlights-import-file", {"type": "file", "accept": ".json,application/json"})
+assert-css: (".mdbook-highlights-import-file", {"display": "none"})
+
+// Still there once the list has entries.
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='highlight']"
+wait-for-count: (".mdbook-highlights-entry", 1)
+assert-css-false: (".mdbook-highlights-toolbar [data-action='export']", {"display": "none"})
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}

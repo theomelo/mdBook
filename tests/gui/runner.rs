@@ -19,6 +19,15 @@ fn npm_command(name: &str) -> Command {
     }
 }
 
+/// Converts a directory to the pathname of its `file://` URL, ending in `/`.
+///
+/// Tests use this to name the `localStorage` keys that pages derive from
+/// `location.pathname`.
+fn dir_to_url_path(dir: &Path) -> String {
+    let uri = dir_to_file_url(dir);
+    uri.strip_prefix("file://").unwrap().to_string()
+}
+
 /// Converts a directory to a `file://` URL ending in `/`.
 ///
 /// This uses the form browsers report on Windows (`file:///C:/foo/`).
@@ -139,6 +148,11 @@ fn run_browser_ui_test(out_dir: &Path) {
     command
         .arg("browser-ui-test")
         .args(["--variable", "DOC_PATH", doc_path.as_str()])
+        .args([
+            "--variable",
+            "DOC_ROOT_PATH",
+            dir_to_url_path(out_dir).as_str(),
+        ])
         .args(["--display-format", "compact"]);
 
     for arg in std::env::args().skip(1) {

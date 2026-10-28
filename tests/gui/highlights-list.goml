@@ -1,0 +1,138 @@
+// The Contents/Highlights tabs in the sidebar and the list of highlights.
+//
+// Orphaned highlights (text no longer found) are not covered here, since
+// that needs a book edited between builds: see the `findQuote` unit tests.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+    "mdbook-highlights-sort": null,
+    "mdbook-sidebar": "visible",
+}
+reload:
+
+define-function: (
+    "highlight-selection",
+    [start, end],
+    block {
+        select-text: (|start|, |end|)
+        wait-for: ".mdbook-highlights-selection"
+        click: ".mdbook-highlights-selection [data-action='highlight']"
+        wait-for-false: ".mdbook-highlights-selection"
+    },
+)
+
+// Tabs, with Contents selected by default.
+assert-count: (".mdbook-navigation [role='tab']", 2)
+assert-text: (".mdbook-navigation [data-tab='contents']", "Contents")
+assert-text: (".mdbook-navigation [data-tab='highlights']", "Highlights")
+assert-attribute: (".mdbook-navigation [data-tab='contents']", {"aria-selected": "true"})
+assert-css: ("#mdbook-sidebar ol.chapter", {"display": "block"})
+assert-css: (".mdbook-highlights-panel", {"display": "none"})
+
+// Highlights tab, empty.
+click: ".mdbook-navigation [data-tab='highlights']"
+assert-attribute: (".mdbook-navigation [data-tab='highlights']", {"aria-selected": "true"})
+assert-css: ("#mdbook-sidebar ol.chapter", {"display": "none"})
+assert-css-false: (".mdbook-highlights-panel", {"display": "none"})
+assert-text: (
+    ".mdbook-highlights-empty",
+    'To create highlights, select a phrase from the book, then click "Highlight."',
+)
+
+// The selected tab is remembered.
+reload:
+wait-for-attribute: (".mdbook-navigation [data-tab='highlights']", {"aria-selected": "true"})
+assert-css: ("#mdbook-sidebar ol.chapter", {"display": "none"})
+
+// Arrow keys move between tabs.
+focus: ".mdbook-navigation [data-tab='highlights']"
+press-key: "ArrowLeft"
+assert-attribute: (".mdbook-navigation [data-tab='contents']", {"aria-selected": "true"})
+assert-css: ("#mdbook-sidebar ol.chapter", {"display": "block"})
+
+// Highlights on two chapters: the nested one first, so it is older.
+go-to: |DOC_PATH| + "highlights/sub/nested.html"
+call-function: ("highlight-selection", {"start": "#nested-target", "end": "#nested-target"})
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+call-function: ("highlight-selection", {"start": "#intro", "end": "#intro"})
+call-function: ("highlight-selection", {"start": "#rep2-target", "end": "#rep2-target"})
+click: ".mdbook-navigation [data-tab='highlights']"
+assert-css: (".mdbook-highlights-empty", {"display": "none"})
+
+// Sorted by chapter: groups in book order, entries in page order.
+assert-text: (".mdbook-highlights-sort", "Chapter")
+assert-count: (".mdbook-highlights-group", 2)
+assert-text: (".mdbook-highlights-group:nth-child(1) .mdbook-highlights-group-title", "1. Chapter 1")
+assert-text: (".mdbook-highlights-group:nth-child(2) .mdbook-highlights-group-title", "2.1. Nested")
+assert-count: (".mdbook-highlights-group:nth-child(1) .mdbook-highlights-entry", 2)
+assert-text: (
+    ".mdbook-highlights-group:nth-child(1) .mdbook-highlights-entry:nth-child(1) .mdbook-highlights-quote",
+    "The quick brown fox jumps over the lazy dog.",
+)
+assert-text: (
+    ".mdbook-highlights-group:nth-child(1) .mdbook-highlights-entry:nth-child(2) .mdbook-highlights-quote",
+    "repeat me",
+)
+assert-text: (".mdbook-highlights-entry .mdbook-highlights-date", "Today")
+assert-false: ".mdbook-highlights-entry .mdbook-highlights-entry-chapter"
+
+// Sorted by date: one flat list, newest first, each with its chapter.
+click: ".mdbook-highlights-sort"
+wait-for: ".mdbook-highlights-sort-menu"
+click: ".mdbook-highlights-sort-menu [data-action='date']"
+assert-text: (".mdbook-highlights-sort", "Date")
+assert-false: ".mdbook-highlights-group-title"
+assert-count: (".mdbook-highlights-entry", 3)
+assert-text: (".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-quote", "repeat me")
+assert-text: (".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-entry-chapter", "1. Chapter 1")
+assert-text: (".mdbook-highlights-entry:nth-child(3) .mdbook-highlights-entry-chapter", "2.1. Nested")
+reload:
+wait-for-text: (".mdbook-highlights-sort", "Date")
+
+// Clicking an entry on another page goes there and shows the passage.
+click: ".mdbook-highlights-entry:nth-child(3)"
+wait-for: "#nested .mdbook-highlight-flash"
+assert-document-property: ({"URL": "highlights/sub/nested.html"}, ENDS_WITH)
+
+// Copy Link from the entry menu. The clipboard itself cannot be read back on
+// file:// pages, so this only checks that copying works without errors.
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+click: ".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-menu-button"
+wait-for: ".mdbook-highlights-entry-menu"
+assert-text: (".mdbook-highlights-entry-menu [data-action='copy-link']", "Copy Link")
+assert-text: (".mdbook-highlights-entry-menu [data-action='delete']", "Delete")
+click: ".mdbook-highlights-entry-menu [data-action='copy-link']"
+wait-for-false: ".mdbook-highlights-entry-menu"
+
+// Delete removes the entry and the highlight in the page.
+assert-count: ("#rep2 .mdbook-highlight", 1)
+click: ".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-menu-button"
+wait-for: ".mdbook-highlights-entry-menu"
+click: ".mdbook-highlights-entry-menu [data-action='delete']"
+assert-count: (".mdbook-highlights-entry", 2)
+assert-count: ("#rep2 .mdbook-highlight", 0)
+reload:
+wait-for-count: (".mdbook-highlights-entry", 2)
+assert-count: ("#rep2 .mdbook-highlight", 0)
+
+// On a narrow screen, jumping within the page closes the sidebar.
+set-window-size: (800, 800)
+reload:
+click: "#mdbook-sidebar-toggle"
+wait-for-css-false: ("#mdbook-sidebar", {"display": "none"})
+// Sorted by date, entry 1 is the "quick brown fox" on this page.
+assert-text: (".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-quote", "The quick brown fox jumps over the lazy dog.")
+click: ".mdbook-highlights-entry:nth-child(1)"
+wait-for: "#intro .mdbook-highlight-flash"
+wait-for-css: ("#mdbook-sidebar", {"display": "none"})
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+    "mdbook-highlights-sort": null,
+}

@@ -1,0 +1,45 @@
+// The feature works on a book whose theme overrides `index.hbs` with an
+// older-style template (unprefixed ids, inline table of contents, no
+// book.js).
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights-old-theme/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights-old-theme/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}
+reload:
+
+// The tabs are added to the inline table of contents.
+assert-count: ("#sidebar .sidebar-scrollbox .mdbook-navigation [role='tab']", 2)
+assert-css: ("#sidebar ol.chapter", {"display": "block"})
+// The bookmark button is added to the menu bar.
+assert: ".right-buttons > .mdbook-highlights-bookmark-button:first-child"
+
+// Highlights are created and restored.
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='highlight']"
+wait-for: "#intro .mdbook-highlight"
+reload:
+wait-for-count: ("#intro .mdbook-highlight", 1)
+
+// And listed.
+click: ".mdbook-navigation [data-tab='highlights']"
+assert-css: ("#sidebar ol.chapter", {"display": "none"})
+assert-count: (".mdbook-highlights-entry", 1)
+assert-text: (".mdbook-highlights-group-title", "Chapter 1", CONTAINS)
+assert-text: (".mdbook-highlights-quote", "The quick brown fox jumps over the lazy dog.")
+
+// Page bookmarks work too.
+click: ".mdbook-highlights-bookmark-button"
+wait-for: ".mdbook-highlights-bookmark-confirm"
+click: ".mdbook-highlights-bookmark-confirm [data-action='confirm']"
+wait-for-count: (".mdbook-highlights-entry", 2)
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}

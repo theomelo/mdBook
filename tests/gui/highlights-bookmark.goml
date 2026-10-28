@@ -1,0 +1,76 @@
+// Bookmarking a whole page from the menu bar.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": "highlights",
+    "mdbook-highlights-sort": null,
+    "mdbook-sidebar": "visible",
+}
+reload:
+
+store-value: (button, ".right-buttons > .mdbook-highlights-bookmark-button:first-child")
+store-value: (confirm, ".mdbook-highlights-bookmark-confirm")
+
+// Not bookmarked: outlined icon.
+assert-attribute: (|button|, {"aria-label": "Bookmark this page"})
+assert-css: (|button| + " .mdbook-highlights-bookmark-off", {"display": "inline-block"})
+assert-css: (|button| + " .mdbook-highlights-bookmark-on", {"display": "none"})
+
+// Cancel stores nothing.
+click: |button|
+wait-for: |confirm|
+assert-text: (|confirm| + " .mdbook-highlights-confirm-text", "Bookmark this page?")
+assert-text: (|confirm| + " [data-action='confirm']", "Bookmark")
+click: |confirm| + " [data-action='cancel']"
+wait-for-false: |confirm|
+assert-count: (".mdbook-highlights-entry", 0)
+
+// Bookmark the page, after a highlight on it.
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='highlight']"
+click: |button|
+wait-for: |confirm|
+click: |confirm| + " [data-action='confirm']"
+wait-for-false: |confirm|
+assert-attribute: (|button|, {"aria-label": "Remove bookmark"})
+assert-css: (|button| + " .mdbook-highlights-bookmark-on", {"display": "inline-block"})
+assert-css: (|button| + " .mdbook-highlights-bookmark-off", {"display": "none"})
+// Listed before the highlights of the same chapter.
+assert-count: (".mdbook-highlights-entry", 2)
+assert-text: (".mdbook-highlights-entry:nth-child(1) .mdbook-highlights-bookmark", "Page bookmarked")
+assert: ".mdbook-highlights-entry:nth-child(2) .mdbook-highlights-quote"
+
+// It survives a reload, and other pages are not bookmarked.
+reload:
+wait-for-attribute: (|button|, {"aria-label": "Remove bookmark"})
+go-to: |DOC_PATH| + "highlights/chapter_2.html"
+wait-for-attribute: (|button|, {"aria-label": "Bookmark this page"})
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+
+// Escape keeps the bookmark.
+click: |button|
+wait-for: |confirm|
+assert-text: (|confirm| + " .mdbook-highlights-confirm-text", "Remove bookmark?")
+assert-text: (|confirm| + " [data-action='confirm']", "Remove")
+press-key: "Escape"
+wait-for-false: |confirm|
+assert-attribute: (|button|, {"aria-label": "Remove bookmark"})
+
+// Remove it.
+click: |button|
+wait-for: |confirm|
+click: |confirm| + " [data-action='confirm']"
+wait-for-false: |confirm|
+assert-attribute: (|button|, {"aria-label": "Bookmark this page"})
+assert-count: (".mdbook-highlights-entry", 1)
+assert-false: ".mdbook-highlights-bookmark"
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}

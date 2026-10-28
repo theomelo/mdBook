@@ -1,0 +1,131 @@
+// Notes: a new highlight with a note is only saved with "Save Note", and
+// cancelling never deletes anything that was saved.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": "highlights",
+    "mdbook-highlights-sort": null,
+    "mdbook-sidebar": "visible",
+}
+reload:
+wait-for-css-false: (".mdbook-highlights-empty", {"display": "none"})
+
+define-function: (
+    "open-draft-note",
+    [start, end],
+    block {
+        select-text: (|start|, |end|)
+        wait-for: ".mdbook-highlights-selection"
+        click: ".mdbook-highlights-selection [data-action='note']"
+        wait-for: ".mdbook-highlights-note-popover .mdbook-highlights-editor textarea"
+    },
+)
+
+define-function: (
+    "assert-nothing-saved",
+    [],
+    block {
+        wait-for-false: ".mdbook-highlights-editor"
+        assert-count: (".mdbook-highlight-draft", 0)
+        assert-count: (".mdbook-highlight", 0)
+        assert-count: (".mdbook-highlights-entry", 0)
+    },
+)
+
+// The draft is marked in the page but not saved or listed.
+call-function: ("open-draft-note", {"start": "#intro", "end": "#intro"})
+assert-text: (".mdbook-highlights-editor .mdbook-highlights-editor-title", "Note")
+assert: "#intro .mdbook-highlight-draft"
+assert-count: (".mdbook-highlight", 0)
+assert-count: (".mdbook-highlights-entry", 0)
+assert-false: ".mdbook-highlights-selection"
+
+// Cancel, Escape and the close button all discard the draft.
+click: ".mdbook-highlights-editor [data-action='cancel']"
+call-function: ("assert-nothing-saved", {})
+reload:
+wait-for-css-false: (".mdbook-highlights-empty", {"display": "none"})
+assert-count: (".mdbook-highlight", 0)
+
+call-function: ("open-draft-note", {"start": "#intro", "end": "#intro"})
+press-key: "Escape"
+call-function: ("assert-nothing-saved", {})
+
+call-function: ("open-draft-note", {"start": "#intro", "end": "#intro"})
+click: ".mdbook-highlights-editor [data-action='close']"
+call-function: ("assert-nothing-saved", {})
+
+// Typing in the note does not trigger keyboard shortcuts.
+call-function: ("open-draft-note", {"start": "#intro", "end": "#intro"})
+press-key: "s"
+assert-property: (".mdbook-highlights-editor textarea", {"value": "s"})
+assert-css: ("#mdbook-search-wrapper", {"display": "none"})
+click: ".mdbook-highlights-editor [data-action='cancel']"
+call-function: ("assert-nothing-saved", {})
+
+// Save Note saves the highlight and its note together.
+call-function: ("open-draft-note", {"start": "#intro", "end": "#intro"})
+write-into: (".mdbook-highlights-editor textarea", "Testing this")
+click: ".mdbook-highlights-editor [data-action='save']"
+wait-for-false: ".mdbook-highlights-editor"
+assert-count: (".mdbook-highlight-draft", 0)
+assert-text: ("#intro .mdbook-highlight", "The quick brown fox jumps over the lazy dog.")
+assert-count: (".mdbook-highlights-entry", 1)
+assert-text: (".mdbook-highlights-entry .mdbook-highlights-note", "Testing this")
+
+// An empty note saves a plain highlight.
+call-function: ("open-draft-note", {"start": "#rep2-target", "end": "#rep2-target"})
+click: ".mdbook-highlights-editor [data-action='save']"
+wait-for: "#rep2 .mdbook-highlight"
+assert-count: (".mdbook-highlights-entry", 2)
+assert-count: (".mdbook-highlights-note", 1)
+
+// Ctrl+Enter saves.
+call-function: ("open-draft-note", {"start": "#alpha-target", "end": "#alpha-target"})
+write-into: (".mdbook-highlights-editor textarea", "Via keyboard")
+key-down-then-up: ("Control", block {
+    press-key: "Enter"
+})
+wait-for: "#alpha .mdbook-highlight"
+assert-count: (".mdbook-highlights-note", 2)
+reload:
+wait-for-count: (".mdbook-highlights-entry", 3)
+assert-count: (".mdbook-highlights-note", 2)
+
+// Editing an existing note: Cancel keeps it unchanged.
+store-value: (first, ".mdbook-highlights-entry:nth-child(1)")
+click: |first| + " .mdbook-highlights-menu-button"
+wait-for: ".mdbook-highlights-entry-menu"
+assert-text: (".mdbook-highlights-entry-menu [data-action='note']", "Edit Note")
+click: ".mdbook-highlights-entry-menu [data-action='note']"
+wait-for: |first| + " .mdbook-highlights-editor textarea"
+assert-property: (|first| + " .mdbook-highlights-editor textarea", {"value": "Testing this"})
+write-into: (|first| + " .mdbook-highlights-editor textarea", " and more")
+click: |first| + " .mdbook-highlights-editor [data-action='cancel']"
+wait-for-false: ".mdbook-highlights-editor"
+assert-text: (|first| + " .mdbook-highlights-note", "Testing this")
+assert-count: (".mdbook-highlights-entry", 3)
+
+// Saving an empty note removes the note but keeps the highlight.
+click: |first| + " .mdbook-highlights-menu-button"
+click: ".mdbook-highlights-entry-menu [data-action='note']"
+wait-for: |first| + " .mdbook-highlights-editor textarea"
+set-property: (|first| + " .mdbook-highlights-editor textarea", {"value": ""})
+click: |first| + " .mdbook-highlights-editor [data-action='save']"
+wait-for-false: ".mdbook-highlights-editor"
+assert-false: |first| + " .mdbook-highlights-note"
+assert-count: (".mdbook-highlights-entry", 3)
+assert: "#intro .mdbook-highlight"
+click: |first| + " .mdbook-highlights-menu-button"
+wait-for: ".mdbook-highlights-entry-menu"
+assert-text: (".mdbook-highlights-entry-menu [data-action='note']", "Add Note")
+press-key: "Escape"
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}

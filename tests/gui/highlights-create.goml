@@ -1,0 +1,89 @@
+// Creating highlights from a text selection, and keeping them across reloads.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {|hl_key|: null}
+reload:
+
+define-function: (
+    "highlight-selection",
+    [start, end],
+    block {
+        select-text: (|start|, |end|)
+        wait-for: ".mdbook-highlights-selection"
+        click: ".mdbook-highlights-selection [data-action='highlight']"
+        wait-for-false: ".mdbook-highlights-selection"
+    },
+)
+
+// A selection across several elements gets one span per text node.
+call-function: ("highlight-selection", {"start": "#mixed", "end": "#mixed"})
+assert-count: ("#mixed .mdbook-highlight", 4)
+assert-text: ("#mixed em .mdbook-highlight", "emphasis here")
+assert-text: ("#mixed code .mdbook-highlight", "code_here")
+assert-text: ("#mixed", "Start of emphasis here and code_here")
+reload:
+wait-for-count: ("#mixed .mdbook-highlight", 4)
+assert-text: ("#mixed code .mdbook-highlight", "code_here")
+
+// The second of two identical phrases is the one restored.
+call-function: ("highlight-selection", {"start": "#rep2-target", "end": "#rep2-target"})
+assert-count: ("#rep2 .mdbook-highlight", 1)
+reload:
+wait-for-count: ("#rep2 .mdbook-highlight", 1)
+assert-count: ("#rep1 .mdbook-highlight", 0)
+assert-text: ("#rep2 .mdbook-highlight", "repeat me")
+
+// Whitespace-only selections don't show the toolbar.
+select-text: ("#blank-target", "#blank-target")
+wait-for: 500
+assert-false: ".mdbook-highlights-selection"
+
+// Selections outside the chapter content don't show the toolbar.
+select-text: (".menu-title", ".menu-title")
+wait-for: 500
+assert-false: ".mdbook-highlights-selection"
+
+// Escape closes the toolbar.
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+press-key: "Escape"
+wait-for-false: ".mdbook-highlights-selection"
+
+// Search marks and highlights coexist; dismissing the search marks keeps
+// the highlights.
+call-function: ("highlight-selection", {"start": "#alpha-target", "end": "#alpha-target"})
+go-to: |DOC_PATH| + "highlights/chapter_1.html?highlight=searched"
+wait-for: "#alpha mark"
+// Search marks may split the highlight into several spans.
+wait-for: "#alpha .mdbook-highlight"
+click: "#alpha mark"
+wait-for-count: ("#alpha mark", 0)
+assert: "#alpha .mdbook-highlight"
+assert-text: ("#alpha", "Alpha is a searched word here.")
+reload:
+wait-for-count: ("#alpha .mdbook-highlight", 1)
+assert-text: ("#alpha .mdbook-highlight", "searched word")
+assert-count: ("#mixed .mdbook-highlight", 4)
+
+// Copy closes the toolbar, and it doesn't come back.
+select-text: ("#rep1-target", "#rep1-target")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='copy']"
+wait-for-false: ".mdbook-highlights-selection"
+wait-for: 600
+assert-false: ".mdbook-highlights-selection"
+
+// The landing page is the first chapter: highlights made on one show on the
+// other.
+go-to: |DOC_PATH| + "highlights/index.html"
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='highlight']"
+wait-for: "#intro .mdbook-highlight"
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+wait-for: "#intro .mdbook-highlight"
+
+set-local-storage: {|hl_key|: null}

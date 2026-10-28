@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light">
+    <head>
+        <!-- A theme in the style of older mdBook versions: unprefixed ids,
+             the table of contents inline in the page, and no book.js. -->
+        <meta charset="UTF-8">
+        <title>{{ title }}</title>
+        <script>
+            var path_to_root = "{{ path_to_root }}";
+        </script>
+    </head>
+    <body>
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden" checked>
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                {{#toc}}{{/toc}}
+            </div>
+        </nav>
+        <div id="page-wrapper" class="page-wrapper">
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <h1 class="menu-title">{{ book_title }}</h1>
+                    <div class="right-buttons">
+                        <a href="{{ path_to_root }}print.html" title="Print this book">Print</a>
+                    </div>
+                </div>
+                <div id="content" class="content">
+                    <main>
+                        {{{ content }}}
+                    </main>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+// Clicking a highlight in the page offers Copy link and Delete.
+
+fail-on-js-error: true
+set-window-size: (1400, 800)
+go-to: |DOC_PATH| + "highlights/chapter_1.html"
+store-value: (hl_key, "mdbook-highlights:" + |DOC_ROOT_PATH| + "highlights/")
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": "highlights",
+    "mdbook-sidebar": "visible",
+}
+reload:
+
+store-value: (popover, ".mdbook-highlights-highlight-menu")
+
+select-text: ("#intro", "#intro")
+wait-for: ".mdbook-highlights-selection"
+click: ".mdbook-highlights-selection [data-action='highlight']"
+wait-for: "#intro .mdbook-highlight"
+
+// Click opens the popover; Escape closes it.
+click: "#intro .mdbook-highlight"
+wait-for: |popover|
+assert-text: (|popover| + " [data-action='copy-link']", "Copy link")
+assert-text: (|popover| + " [data-action='delete']", "Delete")
+press-key: "Escape"
+wait-for-false: |popover|
+
+// Copy link works without errors and closes the popover.
+click: "#intro .mdbook-highlight"
+wait-for: |popover|
+click: |popover| + " [data-action='copy-link']"
+wait-for-false: |popover|
+
+// Selecting text that starts in a highlight shows the selection toolbar.
+select-text: ("#intro", "#mixed")
+wait-for: ".mdbook-highlights-selection"
+assert-false: |popover|
+press-key: "Escape"
+
+// Delete removes it from the page and the list.
+click: "#intro .mdbook-highlight"
+wait-for: |popover|
+click: |popover| + " [data-action='delete']"
+wait-for-false: |popover|
+assert-count: (".mdbook-highlight", 0)
+assert-count: (".mdbook-highlights-entry", 0)
+reload:
+wait-for-css-false: (".mdbook-highlights-empty", {"display": "none"})
+assert-count: (".mdbook-highlight", 0)
+
+set-local-storage: {
+    |hl_key|: null,
+    "mdbook-sidebar-tab": null,
+}

@@ -1,0 +1,359 @@
+/* Highlights, notes and page bookmarks. */
+
+/* This file is not part of the theme, so books with their own
+   `variables.css` may not define every variable used here: each one has a
+   fallback. */
+
+:root {
+    --highlight-bg: hsla(48, 100%, 60%, 0.45);
+    --highlight-flash: hsla(48, 100%, 50%, 0.8);
+}
+
+.light, .rust {
+    --highlight-bg: hsla(50, 100%, 70%, 0.6);
+    --highlight-flash: hsla(45, 100%, 55%, 0.8);
+}
+
+.coal, .navy, .ayu {
+    --highlight-bg: hsla(48, 55%, 32%, 0.75);
+    --highlight-flash: hsla(48, 75%, 45%, 0.9);
+}
+
+.mdbook-highlight {
+    background-color: var(--highlight-bg);
+    color: inherit;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background-color 0.3s;
+}
+
+.mdbook-highlight-flash {
+    background-color: var(--highlight-flash);
+}
+
+.mdbook-highlight-draft {
+    text-decoration: underline dashed;
+    text-decoration-color: var(--sidebar-active, currentColor);
+    text-underline-offset: 3px;
+}
+
+.mdbook-highlights-icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: -0.125em;
+}
+
+.mdbook-highlights-popover {
+    position: absolute;
+    z-index: 1000;
+    color: var(--fg, inherit);
+    background: var(--theme-popup-bg, var(--bg, #fff));
+    border: 1px solid var(--theme-popup-border, #ccc);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 0.85em;
+}
+
+.mdbook-highlights-bar {
+    display: flex;
+}
+
+.mdbook-highlights-bar > button {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    color: var(--icons, inherit);
+    font: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.mdbook-highlights-bar > button + button {
+    border-inline-start: 1px solid var(--theme-popup-border, #ccc);
+}
+
+.mdbook-highlights-bar > button:hover,
+.mdbook-highlights-bar > button:focus-visible {
+    color: var(--icons-hover, inherit);
+    background: var(--theme-hover, rgba(128, 128, 128, 0.15));
+}
+
+.mdbook-highlights-menu {
+    flex-direction: column;
+    min-width: 8em;
+}
+
+.mdbook-highlights-menu > button + button {
+    border-inline-start: none;
+}
+
+/* Sidebar tabs */
+
+.mdbook-navigation {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    margin: 0 0 1em;
+    padding: 0;
+    list-style: none;
+    background: var(--sidebar-bg, inherit);
+    border-bottom: 1px solid var(--sidebar-spacer, rgba(128, 128, 128, 0.3));
+}
+
+.mdbook-navigation > li {
+    flex: 1;
+}
+
+.mdbook-navigation button {
+    width: 100%;
+    padding: 0.7em 0.5em;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--sidebar-fg, inherit);
+    font: inherit;
+    cursor: pointer;
+}
+
+.mdbook-navigation button[aria-selected="true"] {
+    color: var(--sidebar-active, inherit);
+    border-bottom-color: var(--sidebar-active, currentColor);
+}
+
+.mdbook-highlights-tab-active ol.chapter {
+    display: none;
+}
+
+/* Highlights panel */
+
+.mdbook-highlights-panel[hidden],
+.mdbook-highlights-panel [hidden] {
+    display: none;
+}
+
+.mdbook-highlights-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    font-size: 0.9em;
+}
+
+.mdbook-highlights-sort,
+.mdbook-highlights-toolbar button {
+    padding: 2px 8px;
+    border: 1px solid var(--sidebar-spacer, rgba(128, 128, 128, 0.4));
+    border-radius: 4px;
+    background: none;
+    color: var(--sidebar-fg, inherit);
+    font: inherit;
+    cursor: pointer;
+}
+
+.mdbook-highlights-sort::after {
+    content: " \25BE";
+}
+
+.mdbook-highlights-empty {
+    color: var(--searchresults-header-fg, inherit);
+    font-size: 0.9em;
+}
+
+ol.bookmarks,
+.mdbook-highlights-entries {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mdbook-highlights-group + .mdbook-highlights-group {
+    margin-top: 1.2em;
+}
+
+.mdbook-highlights-group-title {
+    margin-bottom: 0.5em;
+    font-weight: bold;
+}
+
+.mdbook-highlights-entry {
+    padding: 0.5em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.mdbook-highlights-entry + .mdbook-highlights-entry {
+    margin-top: 0.4em;
+}
+
+.mdbook-highlights-entry:hover,
+.mdbook-highlights-entry:focus-visible {
+    background: var(--theme-hover, rgba(128, 128, 128, 0.15));
+}
+
+.mdbook-highlights-entry-chapter {
+    margin-bottom: 0.3em;
+    font-size: 0.8em;
+    color: var(--searchresults-header-fg, inherit);
+}
+
+.mdbook-highlights-quote {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.mdbook-highlights-quote::before {
+    content: "\201C";
+}
+
+.mdbook-highlights-quote::after {
+    content: "\201D";
+}
+
+.mdbook-highlights-quote {
+    background: var(--highlight-bg);
+}
+
+.mdbook-highlights-orphan {
+    font-size: 0.8em;
+    font-style: italic;
+    color: var(--searchresults-header-fg, inherit);
+}
+
+.mdbook-highlights-note {
+    margin-top: 0.3em;
+    opacity: 0.75;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.mdbook-highlights-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.3em;
+    font-size: 0.8em;
+    color: var(--searchresults-header-fg, inherit);
+}
+
+.mdbook-highlights-menu-button {
+    padding: 2px 6px;
+    border: none;
+    background: none;
+    color: var(--icons, inherit);
+    cursor: pointer;
+}
+
+.mdbook-highlights-menu-button:hover,
+.mdbook-highlights-menu-button:focus-visible {
+    color: var(--icons-hover, inherit);
+}
+
+/* Note editor */
+
+.mdbook-highlights-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 0.6em;
+    cursor: auto;
+}
+
+.mdbook-highlights-entry .mdbook-highlights-editor {
+    margin-top: 0.5em;
+    border: 1px solid var(--theme-popup-border, rgba(128, 128, 128, 0.4));
+    border-radius: 4px;
+    background: var(--theme-popup-bg, inherit);
+}
+
+.mdbook-highlights-note-popover .mdbook-highlights-editor {
+    width: min(22em, calc(100vw - 32px));
+    box-sizing: border-box;
+}
+
+.mdbook-highlights-editor-header,
+.mdbook-highlights-editor-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mdbook-highlights-editor-title {
+    font-weight: bold;
+}
+
+.mdbook-highlights-editor textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 0.4em;
+    color: var(--fg, inherit);
+    background: var(--bg, inherit);
+    border: 1px solid var(--theme-popup-border, rgba(128, 128, 128, 0.4));
+    border-radius: 3px;
+    font: inherit;
+}
+
+.mdbook-highlights-editor button {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--links, inherit);
+    font: inherit;
+    cursor: pointer;
+}
+
+.mdbook-highlights-editor-footer [data-action="save"] {
+    text-decoration: underline;
+}
+
+.mdbook-highlights-editor-close {
+    color: var(--icons, inherit) !important;
+}
+
+/* Page bookmark button */
+
+.mdbook-highlights-bookmark-button .fa-svg {
+    display: inline-block;
+}
+
+.mdbook-highlights-bookmark-button .mdbook-highlights-bookmark-on,
+.mdbook-highlights-bookmark-button.is-bookmarked .mdbook-highlights-bookmark-off {
+    display: none;
+}
+
+.mdbook-highlights-bookmark-button.is-bookmarked .mdbook-highlights-bookmark-on {
+    display: inline-block;
+}
+
+.mdbook-highlights-confirm-text {
+    margin: 0;
+    padding: 8px 10px 4px;
+}
+
+.mdbook-highlights-bookmark {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.mdbook-highlights-transfer {
+    display: flex;
+    gap: 0.4em;
+    margin-inline-start: auto;
+}
+
+.mdbook-highlights-message {
+    margin: 0 0 1em;
+    font-size: 0.85em;
+    color: var(--searchresults-header-fg, inherit);
+}

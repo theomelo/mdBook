@@ -1,6 +1,7 @@
 //! Support for writing static files.
 
 use super::helpers::resources::ResourceHelper;
+use super::highlights;
 use crate::theme::{self, Theme, playground_editor};
 use anyhow::{Context, Result};
 use mdbook_core::config::HtmlConfig;
@@ -89,6 +90,8 @@ impl StaticFiles {
         this.add_builtin("ayu-highlight.css", &theme.ayu_highlight_css);
         this.add_builtin("highlight.js", &theme.highlight_js);
         this.add_builtin("clipboard.min.js", &theme.clipboard_js);
+        this.add_builtin(highlights::JS_NAME, highlights::JS);
+        this.add_builtin(highlights::CSS_NAME, highlights::CSS);
         if theme.fonts_css.is_none() {
             this.add_builtin("fonts/fonts.css", theme::fonts::CSS);
             for (file_name, contents) in theme::fonts::LICENSES.iter() {

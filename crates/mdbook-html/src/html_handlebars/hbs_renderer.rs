@@ -1,4 +1,5 @@
 use super::helpers;
+use super::highlights;
 use super::static_files::StaticFiles;
 use crate::html::ChapterTree;
 use crate::html::{build_trees, render_markdown, serialize};
@@ -125,6 +126,9 @@ impl HtmlHandlebars {
         // Render the handlebars template with the data
         debug!("Render template");
         let rendered = ctx.handlebars.render("index", &ctx.data)?;
+        ctx.data
+            .insert("highlights_page".to_owned(), json!(filepath.to_url_path()));
+        let rendered = highlights::inject(ctx.handlebars, &ctx.data, rendered)?;
 
         // Write to file
         let out_path = ctx.destination.join(filepath);
@@ -135,6 +139,7 @@ impl HtmlHandlebars {
             ctx.data.insert("path_to_root".to_owned(), json!(""));
             ctx.data.insert("is_index".to_owned(), json!(true));
             let rendered_index = ctx.handlebars.render("index", &ctx.data)?;
+            let rendered_index = highlights::inject(ctx.handlebars, &ctx.data, rendered_index)?;
             debug!("Creating index.html from {}", ctx_path);
             fs::write(ctx.destination.join("index.html"), rendered_index)?;
         }
@@ -356,6 +361,7 @@ impl Renderer for HtmlHandlebars {
 
         debug!("Register the index handlebars template");
         handlebars.register_template_string("index", String::from_utf8(theme.index.clone())?)?;
+        highlights::register_templates(&mut handlebars)?;
 
         debug!("Register the head handlebars template");
         handlebars.register_partial("head", String::from_utf8(theme.head.clone())?)?;
